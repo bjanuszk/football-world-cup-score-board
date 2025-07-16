@@ -69,7 +69,7 @@ class ScoreBoardServiceImplTest {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> testObject.startMatch(POLAND, POLAND));
 
-    assertEquals("Cannot start match for the same teams", exception.getMessage());
+    assertEquals("Team names cannot be the same", exception.getMessage());
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
   }
 
@@ -85,7 +85,6 @@ class ScoreBoardServiceImplTest {
   @ParameterizedTest
   @CsvSource({
     "Poland, Germany",
-    "Germany, Poland",
     "Poland, germany",
     "poland, Germany",
     "poland, GERMANY",

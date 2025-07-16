@@ -16,7 +16,7 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   public void startMatch(String homeTeam, String awayTeam) {
 
     validateInputs(homeTeam, awayTeam);
-    checkForMatchDuplication(homeTeam, awayTeam);
+    validateThatMatchDoesNotExist(homeTeam, awayTeam);
 
     Match match = new Match(homeTeam, awayTeam, INITIAL_SCORE, INITIAL_SCORE);
     storage.put(createMatchKey(homeTeam, awayTeam), match);
@@ -24,7 +24,9 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
 
   @Override
   public void finishMatch(String homeTeam, String awayTeam) {
-
+    validateInputs(homeTeam, awayTeam);
+    validateThatMatchExists(homeTeam, awayTeam);
+    storage.remove(createMatchKey(homeTeam, awayTeam));
   }
 
   @Override
@@ -37,11 +39,11 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
       throw new IllegalArgumentException("Team name cannot be null");
     }
     if (homeTeam.equals(awayTeam)) {
-      throw new IllegalArgumentException("Cannot start match for the same teams");
+      throw new IllegalArgumentException("Team names cannot be the same");
     }
   }
 
-  private void checkForMatchDuplication(String homeTeam, String awayTeam) {
+  private void validateThatMatchDoesNotExist(String homeTeam, String awayTeam) {
     if (storage.containsKey(createMatchKey(homeTeam, awayTeam))
         || storage.containsKey(createMatchKey(awayTeam, homeTeam))) {
       throw new IllegalArgumentException("This match has been already started");
@@ -50,5 +52,11 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
 
   private static String createMatchKey(String homeTeam, String awayTeam) {
     return String.format("%s%s", homeTeam.toUpperCase(), awayTeam.toUpperCase());
+  }
+
+  private void validateThatMatchExists(String homeTeam, String awayTeam) {
+    if(!storage.containsKey(createMatchKey(homeTeam, awayTeam))){
+      throw new IllegalArgumentException("Given match does not exist");
+    }
   }
 }
