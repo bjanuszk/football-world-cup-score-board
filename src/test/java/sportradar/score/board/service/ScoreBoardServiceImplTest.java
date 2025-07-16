@@ -28,11 +28,10 @@ class ScoreBoardServiceImplTest {
   }
 
   @Test
-  void shouldReportErrorWhenTeamNameIsNull() {
+  void shouldReportErrorWhenTeamNameIsNullWhileStartingMatch() {
 
-    IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> testObject.startMatch(null, null));
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> testObject.startMatch(null, null));
 
     assertEquals("Team name cannot be null", exception.getMessage());
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
@@ -40,18 +39,20 @@ class ScoreBoardServiceImplTest {
 
   @ParameterizedTest
   @CsvSource({
-          "Poland, Germany",
-          "Germany, Poland",
-          "Poland, germany",
-          "poland, Germany",
-          "poland, GERMANY",
-          "POLAND, gerMANY",
+    "Poland, Germany",
+    "Germany, Poland",
+    "Poland, germany",
+    "poland, Germany",
+    "poland, GERMANY",
+    "POLAND, gerMANY",
   })
-  void shouldReportErrorWhileTryingToStartAlreadyExistingMatch(String homeTeamName, String awayTeamName) {
+  void shouldReportErrorWhileTryingToStartAlreadyExistingMatch(
+      String homeTeamName, String awayTeamName) {
 
     testObject.startMatch(POLAND, GERMANY);
 
-    IllegalArgumentException exception = assertThrows(
+    IllegalArgumentException exception =
+        assertThrows(
             IllegalArgumentException.class,
             () -> testObject.startMatch(homeTeamName, awayTeamName));
 
@@ -65,11 +66,49 @@ class ScoreBoardServiceImplTest {
   @Test
   void shouldReportErrorWhenHomeAndAwayTeamNamesAreSame() {
 
-    IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> testObject.startMatch(POLAND, POLAND));
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> testObject.startMatch(POLAND, POLAND));
 
     assertEquals("Cannot start match for the same teams", exception.getMessage());
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
+  }
+
+  @Test
+  void shouldReportErrorWhenTeamNameIsNullWhileFinishingMatch() {
+
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> testObject.finishMatch(null, null));
+
+    assertEquals("Team name cannot be null", exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "Poland, Germany",
+    "Germany, Poland",
+    "Poland, germany",
+    "poland, Germany",
+    "poland, GERMANY",
+    "POLAND, gerMANY",
+  })
+  void shouldRemoveExistingMatchFromScoreBoardWhenMatchIsFinished(
+      String homeTeamName, String awayTeamName) {
+    testObject.startMatch(POLAND, GERMANY);
+
+    testObject.finishMatch(homeTeamName, awayTeamName);
+
+    assertTrue(testObject.getScoreBoardSummary().isEmpty());
+  }
+
+  @Test
+  void shouldReportErrorWhileTryingToFinishNotExistingMatch() {
+    testObject.startMatch(POLAND, GERMANY);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, "England"));
+
+    assertEquals("Given match does not exist", exception.getMessage());
+    assertEquals(1, testObject.getScoreBoardSummary().size());
   }
 }

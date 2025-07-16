@@ -23,6 +23,11 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   @Override
+  public void finishMatch(String homeTeam, String awayTeam) {
+
+  }
+
+  @Override
   public List<Match> getScoreBoardSummary() {
     return storage.values().stream().toList();
   }
