@@ -1,6 +1,7 @@
 package sportradar.score.board.service;
 
 import sportradar.score.board.model.Match;
+import sportradar.score.board.model.TeamScore;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +31,9 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   @Override
+  public void updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore) {}
+
+  @Override
   public List<Match> getScoreBoardSummary() {
     return storage.values().stream().toList();
   }
@@ -55,7 +59,7 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   private void validateThatMatchExists(String homeTeam, String awayTeam) {
-    if(!storage.containsKey(createMatchKey(homeTeam, awayTeam))){
+    if (!storage.containsKey(createMatchKey(homeTeam, awayTeam))) {
       throw new IllegalArgumentException("Given match does not exist");
     }
   }

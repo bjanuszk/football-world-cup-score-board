@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import sportradar.score.board.model.Match;
+import sportradar.score.board.model.TeamScore;
 
 import java.util.List;
 
@@ -101,13 +102,89 @@ class ScoreBoardServiceImplTest {
 
   @Test
   void shouldReportErrorWhileTryingToFinishNotExistingMatch() {
-    testObject.startMatch(POLAND, GERMANY);
 
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, "England"));
 
     assertEquals("Given match does not exist", exception.getMessage());
-    assertEquals(1, testObject.getScoreBoardSummary().size());
+    assertTrue(testObject.getScoreBoardSummary().isEmpty());
+  }
+
+  @Test
+  void shouldReportErrorWhenTeamNameIsNullWhileUpdatingMatch() {
+
+    IllegalArgumentException exception =
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> testObject.updateMatchScore(new TeamScore(null, 1), new TeamScore(null, 2)));
+
+    assertEquals("Team name cannot be null", exception.getMessage());
+    assertTrue(testObject.getScoreBoardSummary().isEmpty());
+  }
+
+  @Test
+  void shouldNotUpdateMatchScoreIfMatchDoesNotExist() {
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> testObject.updateMatchScore(new TeamScore(POLAND, 1), new TeamScore(GERMANY, 0)));
+
+    assertEquals("Given match does not exist", exception.getMessage());
+    assertTrue(testObject.getScoreBoardSummary().isEmpty());
+  }
+
+  @Test
+  void shouldUpdateExistingMatch() {
+
+    testObject.startMatch(POLAND, GERMANY);
+    int newPolandScore = 1;
+
+    testObject.updateMatchScore(
+        new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
+
+    List<Match> result = testObject.getScoreBoardSummary();
+    assertEquals(1, result.size());
+    assertEquals(new Match(POLAND, GERMANY, newPolandScore, INITIAL_SCORE), result.getFirst());
+  }
+
+  @Test
+  void shouldAllowUpdatingTheSameMatchWithTheSameScoreMultipleTimes() {
+
+    testObject.startMatch(POLAND, GERMANY);
+    int newPolandScore = 1;
+
+    testObject.updateMatchScore(
+        new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
+    testObject.updateMatchScore(
+            new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
+
+    List<Match> result = testObject.getScoreBoardSummary();
+    assertEquals(1, result.size());
+    assertEquals(new Match(POLAND, GERMANY, newPolandScore, INITIAL_SCORE), result.getFirst());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+          "2, 1",
+          "1, 2"
+  })
+  void shouldReportErrorWhenTryingToUpdateMatchWithLowerScore(int homeTeamScore, int awayTeamScore) {
+
+    testObject.startMatch(POLAND, GERMANY);
+    int existingScore = 2;
+    testObject.updateMatchScore(
+            new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore));
+
+    IllegalArgumentException exception =
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> testObject.updateMatchScore(new TeamScore(POLAND, homeTeamScore), new TeamScore(GERMANY, awayTeamScore)));
+
+    assertEquals("Cannot update match with lower score", exception.getMessage());
+    List<Match> result = testObject.getScoreBoardSummary();
+    assertEquals(1, result.size());
+    assertEquals(new Match(POLAND, GERMANY, existingScore, existingScore), result.getFirst());
   }
 }
