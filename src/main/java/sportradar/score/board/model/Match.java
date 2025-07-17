@@ -1,4 +1,9 @@
 package sportradar.score.board.model;
 
-public record Match(TeamScore homeTeamScore, TeamScore awayTeamScore) {
+import java.time.Instant;
+
+public record Match(TeamScore homeTeamScore, TeamScore awayTeamScore, Instant createdAt) {
+  public int getTotalScore() {
+    return homeTeamScore.score() + awayTeamScore.score();
+  }
 }

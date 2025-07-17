@@ -1,5 +1,10 @@
 package sportradar.score.board.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.then;
+
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,12 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import sportradar.score.board.model.Match;
 import sportradar.score.board.model.TeamScore;
 import sportradar.score.board.service.validation.ScoreBoardInputValidator;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 class ScoreBoardServiceImplTest {
@@ -35,9 +34,8 @@ class ScoreBoardServiceImplTest {
     List<Match> existingMatches = testObject.getScoreBoardSummary();
 
     then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
-    assertEquals(
-        new Match(new TeamScore(POLAND, INITIAL_SCORE), new TeamScore(GERMANY, INITIAL_SCORE)),
-        createdMatch);
+    assertEquals(new TeamScore(POLAND, INITIAL_SCORE), createdMatch.homeTeamScore());
+    assertEquals(new TeamScore(GERMANY, INITIAL_SCORE), createdMatch.awayTeamScore());
     assertEquals(1, existingMatches.size());
     assertEquals(createdMatch, existingMatches.getFirst());
   }
@@ -112,7 +110,7 @@ class ScoreBoardServiceImplTest {
   @Test
   void shouldUpdateExistingMatch() {
 
-    testObject.startMatch(POLAND, GERMANY);
+    Match initialMatch = testObject.startMatch(POLAND, GERMANY);
     int newPolandScore = 1;
 
     Match updatedMatch =
@@ -121,7 +119,10 @@ class ScoreBoardServiceImplTest {
 
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(
-        new Match(new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE)),
+        new Match(
+            new TeamScore(POLAND, newPolandScore),
+            new TeamScore(GERMANY, INITIAL_SCORE),
+            initialMatch.createdAt()),
         updatedMatch);
     assertEquals(1, result.size());
     assertEquals(updatedMatch, result.getFirst());
@@ -130,7 +131,7 @@ class ScoreBoardServiceImplTest {
   @Test
   void shouldAllowUpdatingTheSameMatchWithTheSameScoreMultipleTimes() {
 
-    testObject.startMatch(POLAND, GERMANY);
+    Match initialMatch = testObject.startMatch(POLAND, GERMANY);
     int newPolandScore = 1;
 
     testObject.updateMatchScore(
@@ -141,7 +142,10 @@ class ScoreBoardServiceImplTest {
 
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(
-        new Match(new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE)),
+        new Match(
+            new TeamScore(POLAND, newPolandScore),
+            new TeamScore(GERMANY, INITIAL_SCORE),
+            initialMatch.createdAt()),
         updatedMatch);
     assertEquals(1, result.size());
     assertEquals(updatedMatch, result.getFirst());
@@ -152,7 +156,7 @@ class ScoreBoardServiceImplTest {
   void shouldReportErrorWhenTryingToUpdateMatchWithLowerScore(
       int homeTeamScore, int awayTeamScore) {
 
-    testObject.startMatch(POLAND, GERMANY);
+    Match initialMatch = testObject.startMatch(POLAND, GERMANY);
     int existingScore = 2;
     testObject.updateMatchScore(
         new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore));
@@ -168,7 +172,10 @@ class ScoreBoardServiceImplTest {
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(1, result.size());
     assertEquals(
-        new Match(new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore)),
+        new Match(
+            new TeamScore(POLAND, existingScore),
+            new TeamScore(GERMANY, existingScore),
+            initialMatch.createdAt()),
         result.getFirst());
   }
 
@@ -186,7 +193,7 @@ class ScoreBoardServiceImplTest {
     Match match_1_2 = createMatchWithScore(1, 2);
     Match match_1_4 = createMatchWithScore(1, 4);
     Match match_3_1 = createMatchWithScore(3, 1);
-    Match match_0_0 = createMatchWithScore(0,0);
+    Match match_0_0 = createMatchWithScore(0, 0);
 
     List<Match> scoreBoardSummary = testObject.getScoreBoardSummary();
 

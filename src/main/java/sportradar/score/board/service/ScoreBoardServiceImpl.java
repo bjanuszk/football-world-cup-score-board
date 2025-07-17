@@ -4,9 +4,13 @@ import sportradar.score.board.model.Match;
 import sportradar.score.board.model.TeamScore;
 import sportradar.score.board.service.validation.ScoreBoardInputValidator;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Comparator.comparingInt;
+import static java.util.Comparator.reverseOrder;
 
 public class ScoreBoardServiceImpl implements ScoreBoardService {
 
@@ -14,7 +18,6 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
 
   private final Map<String, Match> storage = new HashMap<>();
   private final ScoreBoardInputValidator scoreBoardInputValidator;
-
   public ScoreBoardServiceImpl(ScoreBoardInputValidator scoreBoardInputValidator) {
     this.scoreBoardInputValidator = scoreBoardInputValidator;
   }
@@ -26,7 +29,10 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
     validateThatMatchDoesNotExist(homeTeam, awayTeam);
 
     Match match =
-        new Match(new TeamScore(homeTeam, INITIAL_SCORE), new TeamScore(awayTeam, INITIAL_SCORE));
+        new Match(
+            new TeamScore(homeTeam, INITIAL_SCORE),
+            new TeamScore(awayTeam, INITIAL_SCORE),
+            Instant.now());
     storage.put(createMatchKey(homeTeam, awayTeam), match);
     return match;
   }
@@ -46,14 +52,19 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
     Match matchToBeUpdated = storage.get(matchKey);
     validateNewScore(matchToBeUpdated, homeTeamScore, awayTeamScore);
 
-    Match updatedMatch = new Match(homeTeamScore, awayTeamScore);
+    Match updatedMatch = new Match(homeTeamScore, awayTeamScore, matchToBeUpdated.createdAt());
     storage.put(matchKey, updatedMatch);
     return updatedMatch;
   }
 
   @Override
   public List<Match> getScoreBoardSummary() {
-    return storage.values().stream().toList();
+    return storage.values().stream()
+        .sorted(
+            comparingInt(Match::getTotalScore)
+                .reversed()
+                .thenComparing(Match::createdAt, reverseOrder()))
+        .toList();
   }
 
   private static String createMatchKey(String homeTeam, String awayTeam) {
