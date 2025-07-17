@@ -28,6 +28,8 @@ TBD
 
 ## Assumptions 
 
+#### Input validation
+- While validating given team names I skipped cases where team name contains white-space characters like: " Poland ", "Pol and"
 #### Start a game
 - It's not possible to have 2 matches started at the same time for the same teams ie: 
 U17 Poland vs U17 Germany is not playing at the same time when U21 Poland vs U21 Germany
