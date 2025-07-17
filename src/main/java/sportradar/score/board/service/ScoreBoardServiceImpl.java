@@ -31,7 +31,21 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   @Override
-  public void updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore) {}
+  public void updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore) {
+    validateInputs(homeTeamScore.teamName(), awayTeamScore.teamName());
+    validateThatMatchExists(homeTeamScore.teamName(), awayTeamScore.teamName());
+    String matchKey = createMatchKey(homeTeamScore.teamName(), awayTeamScore.teamName());
+    Match matchToBeUpdated = storage.get(matchKey);
+    validateNewScore(matchToBeUpdated, homeTeamScore, awayTeamScore);
+
+    storage.put(
+        matchKey,
+        new Match(
+            homeTeamScore.teamName(),
+            awayTeamScore.teamName(),
+            homeTeamScore.score(),
+            awayTeamScore.score()));
+  }
 
   @Override
   public List<Match> getScoreBoardSummary() {
@@ -61,6 +75,13 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   private void validateThatMatchExists(String homeTeam, String awayTeam) {
     if (!storage.containsKey(createMatchKey(homeTeam, awayTeam))) {
       throw new IllegalArgumentException("Given match does not exist");
+    }
+  }
+
+  private static void validateNewScore(Match matchToBeUpdated, TeamScore homeTeamScore, TeamScore awayTeamScore) {
+    if (homeTeamScore.score() < matchToBeUpdated.homeTeamScore()
+            || awayTeamScore.score() < matchToBeUpdated.awayTeamScore()) {
+      throw new IllegalArgumentException("Cannot update match with lower score");
     }
   }
 }
