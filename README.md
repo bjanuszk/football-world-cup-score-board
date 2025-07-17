@@ -24,7 +24,12 @@ To run tests, execute:
 ```
 
 ## Notes
-TBD
+
+I tried to keep the solution simple, so I made following shortcuts:
+1. Business model is the same as data returned to the client - there are no dedicated DTOs
+2. Validation is based on build-in IllegalArgumentException - no custom exceptions
+3. There is no dedicated persistance layer - simple hash map is used instead.
+
 
 ## Assumptions 
 

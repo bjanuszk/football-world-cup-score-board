@@ -2,6 +2,7 @@ package sportradar.score.board.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +39,21 @@ class ScoreBoardServiceImplTest {
     assertEquals(new TeamScore(GERMANY, INITIAL_SCORE), createdMatch.awayTeamScore());
     assertEquals(1, existingMatches.size());
     assertEquals(createdMatch, existingMatches.getFirst());
+  }
+
+  @Test
+  void shouldReportInputValidationErrorWhileStartingMatch() {
+    String message = "Input validation error";
+    doThrow(new IllegalArgumentException(message))
+        .when(scoreBoardInputValidator)
+        .validateInputs(POLAND, GERMANY);
+
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> testObject.startMatch(POLAND, GERMANY));
+
+    then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
+    assertEquals(message, exception.getMessage());
+    assertTrue(testObject.getScoreBoardSummary().isEmpty());
   }
 
   @ParameterizedTest
@@ -81,6 +97,20 @@ class ScoreBoardServiceImplTest {
     testObject.finishMatch(homeTeamName, awayTeamName);
 
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
+  }
+
+  @Test
+  void shouldReportInputValidationErrorWhileFinishingMatch() {
+    String message = "Input validation error";
+    doThrow(new IllegalArgumentException(message))
+        .when(scoreBoardInputValidator)
+        .validateInputs(POLAND, GERMANY);
+
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, GERMANY));
+
+    then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
+    assertEquals(message, exception.getMessage());
   }
 
   @Test
@@ -149,6 +179,22 @@ class ScoreBoardServiceImplTest {
         updatedMatch);
     assertEquals(1, result.size());
     assertEquals(updatedMatch, result.getFirst());
+  }
+
+  @Test
+  void shouldReportInputValidationErrorWhileUpdatingMatch() {
+    String message = "Input validation error";
+    doThrow(new IllegalArgumentException(message))
+        .when(scoreBoardInputValidator)
+        .validateInputs(POLAND, GERMANY);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> testObject.updateMatchScore(new TeamScore(POLAND, 1), new TeamScore(GERMANY, 1)));
+
+    then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
+    assertEquals(message, exception.getMessage());
   }
 
   @ParameterizedTest

@@ -24,7 +24,6 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
 
   @Override
   public Match startMatch(String homeTeam, String awayTeam) {
-
     scoreBoardInputValidator.validateInputs(homeTeam, awayTeam);
     validateThatMatchDoesNotExist(homeTeam, awayTeam);
 
@@ -46,9 +45,12 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
 
   @Override
   public Match updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore) {
-    scoreBoardInputValidator.validateInputs(homeTeamScore.teamName(), awayTeamScore.teamName());
-    validateThatMatchExists(homeTeamScore.teamName(), awayTeamScore.teamName());
-    String matchKey = createMatchKey(homeTeamScore.teamName(), awayTeamScore.teamName());
+    String homeTeamName = homeTeamScore.teamName();
+    String awayTeamName = awayTeamScore.teamName();
+
+    scoreBoardInputValidator.validateInputs(homeTeamName, awayTeamName);
+    validateThatMatchExists(homeTeamName, awayTeamName);
+    String matchKey = createMatchKey(homeTeamName, awayTeamName);
     Match matchToBeUpdated = storage.get(matchKey);
     validateNewScore(matchToBeUpdated, homeTeamScore, awayTeamScore);
 
@@ -68,7 +70,7 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   private static String createMatchKey(String homeTeam, String awayTeam) {
-    return String.format("%s%s", homeTeam.toUpperCase(), awayTeam.toUpperCase());
+    return String.format("%s-%s", homeTeam.toUpperCase(), awayTeam.toUpperCase());
   }
 
   private void validateThatMatchDoesNotExist(String homeTeam, String awayTeam) {
