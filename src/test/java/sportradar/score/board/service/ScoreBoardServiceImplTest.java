@@ -12,6 +12,7 @@ import sportradar.score.board.model.TeamScore;
 import sportradar.score.board.service.validation.ScoreBoardInputValidator;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.then;
@@ -169,5 +170,66 @@ class ScoreBoardServiceImplTest {
     assertEquals(
         new Match(new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore)),
         result.getFirst());
+  }
+
+  @Test
+  void shouldReturnEmptyScoreBoardSummaryIfNoMatchesArePresent() {
+
+    List<Match> scoreBoardSummary = testObject.getScoreBoardSummary();
+
+    assertTrue(scoreBoardSummary.isEmpty());
+  }
+
+  @Test
+  void shouldReturnScoreBoardSummaryOrderedByTotalScore() {
+
+    Match match_1_2 = createMatchWithScore(1, 2);
+    Match match_1_4 = createMatchWithScore(1, 4);
+    Match match_3_1 = createMatchWithScore(3, 1);
+    Match match_0_0 = createMatchWithScore(0,0);
+
+    List<Match> scoreBoardSummary = testObject.getScoreBoardSummary();
+
+    assertEquals(4, scoreBoardSummary.size());
+    assertEquals(List.of(match_1_4, match_3_1, match_1_2, match_0_0), scoreBoardSummary);
+  }
+
+  @Test
+  void shouldReturnScoreBoardSummaryOrderedByRecentlyAddedForTheSameTotalScore() {
+
+    Match first = createMatchWithScore(2, 2);
+    Match second = createMatchWithScore(1, 3);
+    Match third = createMatchWithScore(4, 0);
+
+    List<Match> scoreBoardSummary = testObject.getScoreBoardSummary();
+
+    assertEquals(3, scoreBoardSummary.size());
+    assertEquals(List.of(third, second, first), scoreBoardSummary);
+  }
+
+  @Test
+  void shouldReturnScoreBoardSummaryOrderedByTotalScoreAndThenRecentlyAdded() {
+
+    Match match_1_2 = createMatchWithScore(1, 2);
+    Match match_1_4 = createMatchWithScore(1, 4);
+    Match match_1_3 = createMatchWithScore(1, 3);
+    Match newerMatch_1_3 = createMatchWithScore(1, 3);
+    Match newerMatch_1_2 = createMatchWithScore(1, 2);
+
+    List<Match> scoreBoardSummary = testObject.getScoreBoardSummary();
+
+    assertEquals(5, scoreBoardSummary.size());
+    assertEquals(
+        List.of(match_1_4, newerMatch_1_3, match_1_3, newerMatch_1_2, match_1_2),
+        scoreBoardSummary);
+  }
+
+  private Match createMatchWithScore(int homeTeamScore, int awayTeamScore) {
+    String homeTeamName = UUID.randomUUID().toString();
+    String awayTeamName = UUID.randomUUID().toString();
+    Match match = testObject.startMatch(homeTeamName, awayTeamName);
+    return testObject.updateMatchScore(
+        new TeamScore(match.homeTeamScore().teamName(), homeTeamScore),
+        new TeamScore(match.awayTeamScore().teamName(), awayTeamScore));
   }
 }
