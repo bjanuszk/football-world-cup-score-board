@@ -1,21 +1,32 @@
 package sportradar.score.board.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import sportradar.score.board.model.Match;
 import sportradar.score.board.model.TeamScore;
+import sportradar.score.board.service.validation.ScoreBoardInputValidator;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.then;
 
+@ExtendWith(MockitoExtension.class)
 class ScoreBoardServiceImplTest {
 
   private static final String POLAND = "Poland";
   private static final String GERMANY = "Germany";
   private static final int INITIAL_SCORE = 0;
-  private final ScoreBoardServiceImpl testObject = new ScoreBoardServiceImpl();
+
+  @Mock
+  private  ScoreBoardInputValidator scoreBoardInputValidator;
+  @InjectMocks
+  private  ScoreBoardServiceImpl testObject;
 
   @Test
   void shouldAddMatchToScoreBoardWhenMatchHasStarted() {
@@ -24,6 +35,7 @@ class ScoreBoardServiceImplTest {
 
     List<Match> result = testObject.getScoreBoardSummary();
 
+    then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
     assertEquals(1, result.size());
     assertEquals(
         new Match(new TeamScore(POLAND, INITIAL_SCORE), new TeamScore(GERMANY, INITIAL_SCORE)),
@@ -112,6 +124,7 @@ class ScoreBoardServiceImplTest {
             IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, "England"));
 
     assertEquals("Given match does not exist", exception.getMessage());
+    then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
   }
 
@@ -136,6 +149,7 @@ class ScoreBoardServiceImplTest {
             () -> testObject.updateMatchScore(new TeamScore(POLAND, 1), new TeamScore(GERMANY, 0)));
 
     assertEquals("Given match does not exist", exception.getMessage());
+    then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
   }
 
