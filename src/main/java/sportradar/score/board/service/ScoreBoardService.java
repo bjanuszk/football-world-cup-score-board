@@ -6,11 +6,11 @@ import sportradar.score.board.model.TeamScore;
 import java.util.List;
 
 public interface ScoreBoardService {
-    void startMatch(String homeTeam, String awayTeam);
+    Match startMatch(String homeTeam, String awayTeam);
 
     void finishMatch(String homeTeam, String awayTeam);
 
-    List<Match> getScoreBoardSummary();
+    Match updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore);
 
-    void updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore);
+    List<Match> getScoreBoardSummary();
 }

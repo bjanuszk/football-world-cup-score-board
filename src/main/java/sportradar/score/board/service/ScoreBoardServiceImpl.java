@@ -20,7 +20,7 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   @Override
-  public void startMatch(String homeTeam, String awayTeam) {
+  public Match startMatch(String homeTeam, String awayTeam) {
 
     scoreBoardInputValidator.validateInputs(homeTeam, awayTeam);
     validateThatMatchDoesNotExist(homeTeam, awayTeam);
@@ -28,6 +28,7 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
     Match match =
         new Match(new TeamScore(homeTeam, INITIAL_SCORE), new TeamScore(awayTeam, INITIAL_SCORE));
     storage.put(createMatchKey(homeTeam, awayTeam), match);
+    return match;
   }
 
   @Override
@@ -38,14 +39,16 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
   }
 
   @Override
-  public void updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore) {
+  public Match updateMatchScore(TeamScore homeTeamScore, TeamScore awayTeamScore) {
     scoreBoardInputValidator.validateInputs(homeTeamScore.teamName(), awayTeamScore.teamName());
     validateThatMatchExists(homeTeamScore.teamName(), awayTeamScore.teamName());
     String matchKey = createMatchKey(homeTeamScore.teamName(), awayTeamScore.teamName());
     Match matchToBeUpdated = storage.get(matchKey);
     validateNewScore(matchToBeUpdated, homeTeamScore, awayTeamScore);
 
-    storage.put(matchKey, new Match(homeTeamScore, awayTeamScore));
+    Match updatedMatch = new Match(homeTeamScore, awayTeamScore);
+    storage.put(matchKey, updatedMatch);
+    return updatedMatch;
   }
 
   @Override

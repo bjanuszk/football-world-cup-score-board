@@ -23,23 +23,22 @@ class ScoreBoardServiceImplTest {
   private static final String GERMANY = "Germany";
   private static final int INITIAL_SCORE = 0;
 
-  @Mock
-  private  ScoreBoardInputValidator scoreBoardInputValidator;
-  @InjectMocks
-  private  ScoreBoardServiceImpl testObject;
+  @Mock private ScoreBoardInputValidator scoreBoardInputValidator;
+  @InjectMocks private ScoreBoardServiceImpl testObject;
 
   @Test
   void shouldAddMatchToScoreBoardWhenMatchHasStarted() {
 
-    testObject.startMatch(POLAND, GERMANY);
+    Match createdMatch = testObject.startMatch(POLAND, GERMANY);
 
-    List<Match> result = testObject.getScoreBoardSummary();
+    List<Match> existingMatches = testObject.getScoreBoardSummary();
 
     then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
-    assertEquals(1, result.size());
     assertEquals(
         new Match(new TeamScore(POLAND, INITIAL_SCORE), new TeamScore(GERMANY, INITIAL_SCORE)),
-        result.getFirst());
+        createdMatch);
+    assertEquals(1, existingMatches.size());
+    assertEquals(createdMatch, existingMatches.getFirst());
   }
 
   @ParameterizedTest
@@ -54,7 +53,7 @@ class ScoreBoardServiceImplTest {
   void shouldReportErrorWhileTryingToStartAlreadyExistingMatch(
       String homeTeamName, String awayTeamName) {
 
-    testObject.startMatch(POLAND, GERMANY);
+    Match initialMatch = testObject.startMatch(POLAND, GERMANY);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -65,9 +64,7 @@ class ScoreBoardServiceImplTest {
 
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(1, result.size());
-    assertEquals(
-        new Match(new TeamScore(POLAND, INITIAL_SCORE), new TeamScore(GERMANY, INITIAL_SCORE)),
-        result.getFirst());
+    assertEquals(initialMatch, result.getFirst());
   }
 
   @ParameterizedTest
@@ -91,8 +88,7 @@ class ScoreBoardServiceImplTest {
   void shouldReportErrorWhileTryingToFinishNotExistingMatch() {
 
     IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, GERMANY));
+        assertThrows(IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, GERMANY));
 
     assertEquals("Given match does not exist", exception.getMessage());
     then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
@@ -118,14 +114,16 @@ class ScoreBoardServiceImplTest {
     testObject.startMatch(POLAND, GERMANY);
     int newPolandScore = 1;
 
-    testObject.updateMatchScore(
-        new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
+    Match updatedMatch =
+        testObject.updateMatchScore(
+            new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
 
     List<Match> result = testObject.getScoreBoardSummary();
-    assertEquals(1, result.size());
     assertEquals(
         new Match(new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE)),
-        result.getFirst());
+        updatedMatch);
+    assertEquals(1, result.size());
+    assertEquals(updatedMatch, result.getFirst());
   }
 
   @Test
@@ -136,14 +134,16 @@ class ScoreBoardServiceImplTest {
 
     testObject.updateMatchScore(
         new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
-    testObject.updateMatchScore(
-        new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
+    Match updatedMatch =
+        testObject.updateMatchScore(
+            new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
 
     List<Match> result = testObject.getScoreBoardSummary();
-    assertEquals(1, result.size());
     assertEquals(
         new Match(new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE)),
-        result.getFirst());
+        updatedMatch);
+    assertEquals(1, result.size());
+    assertEquals(updatedMatch, result.getFirst());
   }
 
   @ParameterizedTest
