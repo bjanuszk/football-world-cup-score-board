@@ -42,16 +42,6 @@ class ScoreBoardServiceImplTest {
         result.getFirst());
   }
 
-  @Test
-  void shouldReportErrorWhenTeamNameIsNullWhileStartingMatch() {
-
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> testObject.startMatch(null, null));
-
-    assertEquals("Team name cannot be null", exception.getMessage());
-    assertTrue(testObject.getScoreBoardSummary().isEmpty());
-  }
-
   @ParameterizedTest
   @CsvSource({
     "Poland, Germany",
@@ -80,25 +70,6 @@ class ScoreBoardServiceImplTest {
         result.getFirst());
   }
 
-  @Test
-  void shouldReportErrorWhenHomeAndAwayTeamNamesAreSame() {
-
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> testObject.startMatch(POLAND, POLAND));
-
-    assertEquals("Team names cannot be the same", exception.getMessage());
-    assertTrue(testObject.getScoreBoardSummary().isEmpty());
-  }
-
-  @Test
-  void shouldReportErrorWhenTeamNameIsNullWhileFinishingMatch() {
-
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> testObject.finishMatch(null, null));
-
-    assertEquals("Team name cannot be null", exception.getMessage());
-  }
-
   @ParameterizedTest
   @CsvSource({
     "Poland, Germany",
@@ -121,22 +92,10 @@ class ScoreBoardServiceImplTest {
 
     IllegalArgumentException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, "England"));
+            IllegalArgumentException.class, () -> testObject.finishMatch(POLAND, GERMANY));
 
     assertEquals("Given match does not exist", exception.getMessage());
     then(scoreBoardInputValidator).should().validateInputs(POLAND, GERMANY);
-    assertTrue(testObject.getScoreBoardSummary().isEmpty());
-  }
-
-  @Test
-  void shouldReportErrorWhenTeamNameIsNullWhileUpdatingMatch() {
-
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> testObject.updateMatchScore(new TeamScore(null, 1), new TeamScore(null, 2)));
-
-    assertEquals("Team name cannot be null", exception.getMessage());
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
   }
 
