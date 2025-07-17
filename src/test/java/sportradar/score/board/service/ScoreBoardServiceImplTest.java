@@ -25,7 +25,9 @@ class ScoreBoardServiceImplTest {
     List<Match> result = testObject.getScoreBoardSummary();
 
     assertEquals(1, result.size());
-    assertEquals(new Match(POLAND, GERMANY, INITIAL_SCORE, INITIAL_SCORE), result.getFirst());
+    assertEquals(
+        new Match(new TeamScore(POLAND, INITIAL_SCORE), new TeamScore(GERMANY, INITIAL_SCORE)),
+        result.getFirst());
   }
 
   @Test
@@ -61,7 +63,9 @@ class ScoreBoardServiceImplTest {
 
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(1, result.size());
-    assertEquals(new Match(POLAND, GERMANY, INITIAL_SCORE, INITIAL_SCORE), result.getFirst());
+    assertEquals(
+        new Match(new TeamScore(POLAND, INITIAL_SCORE), new TeamScore(GERMANY, INITIAL_SCORE)),
+        result.getFirst());
   }
 
   @Test
@@ -115,9 +119,9 @@ class ScoreBoardServiceImplTest {
   void shouldReportErrorWhenTeamNameIsNullWhileUpdatingMatch() {
 
     IllegalArgumentException exception =
-            assertThrows(
-                    IllegalArgumentException.class,
-                    () -> testObject.updateMatchScore(new TeamScore(null, 1), new TeamScore(null, 2)));
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> testObject.updateMatchScore(new TeamScore(null, 1), new TeamScore(null, 2)));
 
     assertEquals("Team name cannot be null", exception.getMessage());
     assertTrue(testObject.getScoreBoardSummary().isEmpty());
@@ -146,7 +150,9 @@ class ScoreBoardServiceImplTest {
 
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(1, result.size());
-    assertEquals(new Match(POLAND, GERMANY, newPolandScore, INITIAL_SCORE), result.getFirst());
+    assertEquals(
+        new Match(new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE)),
+        result.getFirst());
   }
 
   @Test
@@ -158,33 +164,37 @@ class ScoreBoardServiceImplTest {
     testObject.updateMatchScore(
         new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
     testObject.updateMatchScore(
-            new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
+        new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE));
 
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(1, result.size());
-    assertEquals(new Match(POLAND, GERMANY, newPolandScore, INITIAL_SCORE), result.getFirst());
+    assertEquals(
+        new Match(new TeamScore(POLAND, newPolandScore), new TeamScore(GERMANY, INITIAL_SCORE)),
+        result.getFirst());
   }
 
   @ParameterizedTest
-  @CsvSource({
-          "2, 1",
-          "1, 2"
-  })
-  void shouldReportErrorWhenTryingToUpdateMatchWithLowerScore(int homeTeamScore, int awayTeamScore) {
+  @CsvSource({"2, 1", "1, 2"})
+  void shouldReportErrorWhenTryingToUpdateMatchWithLowerScore(
+      int homeTeamScore, int awayTeamScore) {
 
     testObject.startMatch(POLAND, GERMANY);
     int existingScore = 2;
     testObject.updateMatchScore(
-            new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore));
+        new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore));
 
     IllegalArgumentException exception =
-            assertThrows(
-                    IllegalArgumentException.class,
-                    () -> testObject.updateMatchScore(new TeamScore(POLAND, homeTeamScore), new TeamScore(GERMANY, awayTeamScore)));
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                testObject.updateMatchScore(
+                    new TeamScore(POLAND, homeTeamScore), new TeamScore(GERMANY, awayTeamScore)));
 
     assertEquals("Cannot update match with lower score", exception.getMessage());
     List<Match> result = testObject.getScoreBoardSummary();
     assertEquals(1, result.size());
-    assertEquals(new Match(POLAND, GERMANY, existingScore, existingScore), result.getFirst());
+    assertEquals(
+        new Match(new TeamScore(POLAND, existingScore), new TeamScore(GERMANY, existingScore)),
+        result.getFirst());
   }
 }

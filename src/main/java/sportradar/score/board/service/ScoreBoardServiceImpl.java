@@ -19,7 +19,8 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
     validateInputs(homeTeam, awayTeam);
     validateThatMatchDoesNotExist(homeTeam, awayTeam);
 
-    Match match = new Match(homeTeam, awayTeam, INITIAL_SCORE, INITIAL_SCORE);
+    Match match =
+        new Match(new TeamScore(homeTeam, INITIAL_SCORE), new TeamScore(awayTeam, INITIAL_SCORE));
     storage.put(createMatchKey(homeTeam, awayTeam), match);
   }
 
@@ -38,13 +39,7 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
     Match matchToBeUpdated = storage.get(matchKey);
     validateNewScore(matchToBeUpdated, homeTeamScore, awayTeamScore);
 
-    storage.put(
-        matchKey,
-        new Match(
-            homeTeamScore.teamName(),
-            awayTeamScore.teamName(),
-            homeTeamScore.score(),
-            awayTeamScore.score()));
+    storage.put(matchKey, new Match(homeTeamScore, awayTeamScore));
   }
 
   @Override
@@ -78,9 +73,10 @@ public class ScoreBoardServiceImpl implements ScoreBoardService {
     }
   }
 
-  private static void validateNewScore(Match matchToBeUpdated, TeamScore homeTeamScore, TeamScore awayTeamScore) {
-    if (homeTeamScore.score() < matchToBeUpdated.homeTeamScore()
-            || awayTeamScore.score() < matchToBeUpdated.awayTeamScore()) {
+  private static void validateNewScore(
+      Match matchToBeUpdated, TeamScore homeTeamScore, TeamScore awayTeamScore) {
+    if (homeTeamScore.score() < matchToBeUpdated.homeTeamScore().score()
+        || awayTeamScore.score() < matchToBeUpdated.awayTeamScore().score()) {
       throw new IllegalArgumentException("Cannot update match with lower score");
     }
   }
